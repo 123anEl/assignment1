@@ -65,14 +65,17 @@ def get_transactionInfo_to_add_block():
     if answer=='yes':
         return get_transactionInfo_to_add_block()
     else:
-        print('Successful addition of blocks')
+        for block in BlockChain.blocks:
+            print('Successful addition of block')
+            print(block.__dict__)
+
 
 
 
 get_transactionInfo_to_add_block()
 
-for block in BlockChain.blocks:
-    print(block.__dict__)
+
+
 
 '''tr3 = 'b3 sends WWW 3.5 btc'
 b3 = BlockChain(tr3)
