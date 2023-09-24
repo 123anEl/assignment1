@@ -73,7 +73,6 @@ def get_transactionInfo_to_add_block():
 
 
 get_transactionInfo_to_add_block()
-get_transactionInfo_to_add_block()
 
 
 
