@@ -4,16 +4,21 @@ import json
 
 class Block:
     index_counter = -1
-    def __init__(self, nonce,transactions,  timeStamp,previous_hash ):
+    def __init__(self, nonce,transactions,  timeStamp,previous_hash, hash ):
         Block.index_counter+=1
         self.index = Block.index_counter
         self.nonce = nonce
         self.transactions = transactions
         self.timeStamp = timeStamp
         self.previous_hash = previous_hash
-        self.block_data = json.dumps(self.__dict__, sort_keys=True, default=str).encode()
-        self.hash = hashlib.sha256(self.block_data).hexdigest()
+        #self.block_data = json.dumps(self.__dict__, sort_keys=True, default=str).encode()
+        self.block_data = (str(self.index) + str(self.nonce) + str(self.transactions) + str(self.timeStamp) + str(self.previous_hash)).encode()
+        self.hash=hash
         Blockchain.blocks.append(self)
+
+
+#    def hash(self):
+
 
 class Blockchain:
     index_counter=0
@@ -21,7 +26,7 @@ class Blockchain:
 
     @staticmethod
     def create_genesisBlock():
-        genesis_block = Block(0,[], datetime.datetime.now(), '0' )
+        genesis_block = Block(0, [], datetime.datetime.now(), '0', '0000')
 
     def add_block(self):
         Blockchain.index_counter += 1
@@ -42,14 +47,15 @@ def get_transaction_info():
     amount = input('Enter amount:')
     if len(Blockchain.blocks)>1:
         add_transaction(sender, recipient, amount)
-        answer = input("Want to add more block? (yes/no)")
+        answer = input("Want to add more transactions? (yes/no)")
         if answer == "yes":
             return get_transaction_info()
         else:
             print("Transaction was successfully added")
-        return sender, recipient, amount
+        return sender, recipient, amount, func()
     else:
         print('You cannot add transactions to genesis block')
+        return func()
 
 def add_transaction(sender, recipient, amount):
     last_block = Blockchain.blocks[-1].transactions
@@ -60,22 +66,111 @@ def add_transaction(sender, recipient, amount):
 
 
 
-Blockchain.create_genesisBlock()
-for b in Blockchain.blocks:
-    print(b.__dict__)
-print()
-get_transaction_info()
-for i in Blockchain.blocks[-1].transactions:
-    print(i)
 
-
-def validate(nonce, last_block_transaction, last_block_hash):
-    answer = (str(last_block_transaction) + str(last_block_hash) + str(nonce)).encode()
+def validate(last_block):
+    last_block = last_block
+    answer = (str(last_block.index)+str(last_block.nonce)+str(last_block.transactions)+str(last_block.timeStamp)+str(last_block .previous_hash)).encode()
     answer_hash = hashlib.sha256(answer).hexdigest()
-def calculate_nonce():
+    print(answer_hash)
+    if answer_hash[0:2]=='00':
+        return answer_hash
+
+'''def calculate_nonce():
     nonce = 0
+    last_block=Blockchain.blocks[-1]
     last_block_transaction = Blockchain.blocks[-1].transactions
     last_block_hash = Blockchain.blocks[-1].hash
+    correct_hash = '0'
+    while not validate(last_block):
+        nonce+=1
+    return nonce'''
+
+
+
+
+'''def hash_func(last_block):
+    counter= 0
+    calculated_hash = hashlib.sha256(last_block.block_data).hexdigest()
+    while True:
+        if calculated_hash[0:2]=='00':
+            break
+        calculated_hash = hashlib.sha256(last_block.block_data).hexdigest()
+        counter+=1
+    return calculated_hash, counter'''
+
+
+def calculate_nonce():
+    nonce = 0
+    while True:
+        if len(Blockchain.blocks) == 1:
+            last_block = str(Blockchain.blocks[0]) + str(nonce)
+        else:
+            last_block = str(Blockchain.blocks[-1]) + str(nonce)
+
+        calculated_hash = hashlib.sha256(last_block.encode()).hexdigest()
+        if calculated_hash[:2] == '00':
+            return calculated_hash, nonce
+        nonce += 1
+
+def mine_or_add_block():
+    hash, nonce = calculate_nonce()
+    timeStamp = datetime.datetime.now()
+    transactions=[]
+    if len(Blockchain.blocks) == 1:
+        previous_hash = '0000'
+    else:
+        previous_hash = Blockchain.blocks[-1].hash
+   # previous_hash = Blockchain.blocks[-1].hash
+    new_block = Block(nonce, transactions, timeStamp, previous_hash, hash)
+    print("Block was succesfully added")
+    return func()
+
+
+
+
+Blockchain.create_genesisBlock()
+def func():
+    while True:
+        print("Choose 1 - to add transaction")
+        print("Choose 2 - to add block")
+        print("Choose 3 - to see the blockchain")
+        choice = input("Enter your choice:")
+        if (choice == "1"):
+            get_transaction_info()
+            break
+        elif (choice == "2"):
+            mine_or_add_block()
+            break
+        elif (choice == "3"):
+            for b in Blockchain.blocks:
+                print('Block: ', b.index)
+                print('nonce: ', b.nonce)
+                print('transactions: ', b.transactions)
+                print('timeStamp: ' ,b.timeStamp)
+                print('previous_hash: ' ,b.previous_hash)
+                print( 'hash: ',b.hash)
+                print()
+            return func()
+            break
+        else:
+            print("Enter correct option")
+
+func()
+
+#block2=Block(10, [], datetime.datetime.now(), '0', '0' )
+'''for b in Blockchain.blocks:
+    print(b.__dict__)
+
+print(len(Blockchain.blocks))
+
+mine_or_add_block()
+for b in Blockchain.blocks:
+    print(b.__dict__)
+
+get_transaction_info()
+for b in Blockchain.blocks:
+    print(b.__dict__)
+'''
 
 
 
