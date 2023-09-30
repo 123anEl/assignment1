@@ -14,7 +14,11 @@ class Block:
         #self.block_data = json.dumps(self.__dict__, sort_keys=True, default=str).encode()
         self.block_data = (str(self.index) + str(self.nonce) + str(self.transactions) + str(self.timeStamp) + str(self.previous_hash)).encode()
         self.hash=hash
+        self.merkle_root = None
         Blockchain.blocks.append(self)
+
+
+
 
 
 #    def hash(self):
@@ -88,16 +92,6 @@ def validate(last_block):
 
 
 
-'''def hash_func(last_block):
-    counter= 0
-    calculated_hash = hashlib.sha256(last_block.block_data).hexdigest()
-    while True:
-        if calculated_hash[0:2]=='00':
-            break
-        calculated_hash = hashlib.sha256(last_block.block_data).hexdigest()
-        counter+=1
-    return calculated_hash, counter'''
-
 
 def calculate_nonce():
     nonce = 0
@@ -112,7 +106,37 @@ def calculate_nonce():
             return calculated_hash, nonce
         nonce += 1
 
+def calculate_merkle_root(transactions):
+    if len(transactions) == 0:
+        return hashlib.sha256(b'').hexdigest()
+    elif len(transactions) == 1:
+        return hashlib.sha256(transactions[0].encode()).hexdigest()
+    else:
+        while len(transactions) > 1:
+            temp_transactions = []
+            for i in range(0, len(transactions) - 1, 2):
+                combined = transactions[i] + transactions[i + 1]
+                root = hashlib.sha256(combined.encode()).hexdigest()
+                temp_transactions.append(root)
+            if len(transactions) % 2 != 0:
+                temp_transactions.append(transactions[-1])
+            transactions = temp_transactions
+        return transactions[0]
 def mine_or_add_block():
+    hash, nonce = calculate_nonce()
+    timeStamp = datetime.datetime.now()
+    transactions = []
+    if len(Blockchain.blocks) == 1:
+        previous_hash = '0000'
+    else:
+        previous_hash = Blockchain.blocks[-1].hash
+    merkle_root = calculate_merkle_root(transactions)
+    new_block = Block(nonce, transactions, timeStamp, previous_hash, hash)
+    new_block.merkle_root = merkle_root
+    print("Block was successfully added")
+    return func()
+
+'''def mine_or_add_block():
     hash, nonce = calculate_nonce()
     timeStamp = datetime.datetime.now()
     transactions=[]
@@ -123,7 +147,7 @@ def mine_or_add_block():
    # previous_hash = Blockchain.blocks[-1].hash
     new_block = Block(nonce, transactions, timeStamp, previous_hash, hash)
     print("Block was succesfully added")
-    return func()
+    return func()'''
 
 
 
@@ -149,28 +173,17 @@ def func():
                 print('timeStamp: ' ,b.timeStamp)
                 print('previous_hash: ' ,b.previous_hash)
                 print( 'hash: ',b.hash)
+                print('merkle root:', b.merkle_root)
                 print()
             return func()
-            break
+            #break
         else:
             print("Enter correct option")
 
 func()
 
 #block2=Block(10, [], datetime.datetime.now(), '0', '0' )
-'''for b in Blockchain.blocks:
-    print(b.__dict__)
 
-print(len(Blockchain.blocks))
-
-mine_or_add_block()
-for b in Blockchain.blocks:
-    print(b.__dict__)
-
-get_transaction_info()
-for b in Blockchain.blocks:
-    print(b.__dict__)
-'''
 
 
 
